@@ -1,0 +1,9 @@
+# This is Git's per-user configuration file.
+[user]
+# Please adapt and uncomment the following lines:
+#	name = Morten Kals
+#	email = mKals@dhcp-206-87-132-19.ubcsecure.wireless.ubc.ca
+[push]
+	default = matching
+[user]
+	email = m.kals@me.com
