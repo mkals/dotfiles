@@ -12,14 +12,21 @@ Plugin 'VundleVim/Vundle.vim'
 
 " My plugins
 Plugin 'scrooloose/nerdtree'            " file-system
-Plugin 'Xuyuanp/nerdtree-git-plugin'    " git-flags for nerdtree
+Plugin 'jistr/vim-nerdtree-tabs'        " tabs
+Plugin 'tpope/vim-fugitive'             " git-integratino
+"Plugin 'Xuyuanp/nerdtree-git-plugin'    " git-flags for nerdtree
 Plugin 'tpope/vim-surround'             " brackes, parenthesies etc.
 Plugin 'scrooloose/nerdcommenter'       " comments
 Plugin 'scrooloose/syntastic'           " syntax-checking
 Plugin 'Shougo/neocomplete.vim'         " auto-complete
 Plugin 'flazz/vim-colorschemes'         " bundle of colour-schemes
-Plugin 'ggreer/the_silver_searcher'     " ag, fast search
 Plugin 'ctrlpvim/ctrlp.vim'             " fuzzy search functionality
+Plugin 'vim-scripts/indentpython.vim'   " handles special indentation
+Bundle 'Valloric/YouCompleteMe'         " auto-complete
+Plugin 'scrooloose/syntastic'           " syntax-checking
+Plugin 'nvie/vim-flake8'                " PEP8 checking 
+Plugin 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'} " Powerline
+
 
 " format refference: https://github.com/VundleVim/Vundle.vim
 
@@ -46,10 +53,32 @@ else
     set background=dark
 endif
 
+call togglebg#map("<F5>") " switch between light and dark using f5
+
 " ## Spaces and tabs
 set tabstop=4       " number of visual spaces per TAB
 set softtabstop=4   " number of spaces in tab when editing
 set expandtab       " tabs are spaces
+
+" python indentation
+au BufNewFile,BufRead *.py
+    \ set tabstop=4
+    \ set softtabstop=4
+    \ set shiftwidth=4
+    \ set textwidth=79
+    \ set expandtab
+    \ set autoindent
+    \ set fileformat=unix
+
+set encoding=utf-8 " UTF-8 support
+
+
+" full stack development files
+au BufNewFile,BufRead *.js, *.html, *.css
+    \ set tabstop=2
+    \ set softtabstop=2
+    \ set shiftwidth=2
+
 
 " ## UI Config
 set number              " show line numbers
@@ -59,6 +88,16 @@ filetype indent on      " load filetype-specific indent files
 set wildmenu            " visual autocomplete for command menu
 set lazyredraw          " redraw only when we need to.
 set showmatch           " highlight matching [{()}]
+
+" ## Split Layouts
+set splitbelow
+set splitright
+
+" split navigations
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
 
 " ## Search
 set incsearch           " search as characters are entered
@@ -104,6 +143,10 @@ nnoremap <leader>s :mksession<CR>
 
 " ## Plugin Settings
 
+" ### Nerdtree
+let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
+ 
+
 " ### Ag
 " open ag.vim
 nnoremap <leader>a :Ag
@@ -116,6 +159,23 @@ let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden -g ""'
 
 " Run CtrlP using Ag for better perforance 
 let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+" ### YouCompleteMe
+let g:ycm_autoclose_preview_window_after_completion=1
+map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+"python with virtualenv support
+py << EOF
+import os
+import sys
+if 'VIRTUAL_ENV' in os.environ:
+  project_base_dir = os.environ['VIRTUAL_ENV']
+  activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+  execfile(activate_this, dict(__file__=activate_this))
+EOF
+
+let python_highlight_all=1
+syntax on
 
 " ### Autogroups
 augroup configgroup
@@ -163,4 +223,7 @@ function! ToggleNumber()
     endif
 endfunction
 
+set clipboard=unnamed " access system clipbaord in vim
+
  " A great starting config resource https://dougblack.io/words/a-good-vimrc.html#colors 
+ " another https://realpython.com/blog/python/vim-and-python-a-match-made-in-heaven/
