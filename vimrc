@@ -18,14 +18,18 @@ Plugin 'tpope/vim-fugitive'             " git-integratino
 Plugin 'tpope/vim-surround'             " brackes, parenthesies etc.
 Plugin 'scrooloose/nerdcommenter'       " comments
 Plugin 'scrooloose/syntastic'           " syntax-checking
+Plugin 'pycqa/flake8.git'               " python syntax for syntastic
 Plugin 'Shougo/neocomplete.vim'         " auto-complete
+Plugin 'xolox/vim-lua-ftplugin'         " dependency of neocomplete
+Plugin 'xolox/vim-misc'                 " dependency of lua
 Plugin 'flazz/vim-colorschemes'         " bundle of colour-schemes
 Plugin 'ctrlpvim/ctrlp.vim'             " fuzzy search functionality
 Plugin 'vim-scripts/indentpython.vim'   " handles special indentation
-Bundle 'Valloric/YouCompleteMe'         " auto-complete
-Plugin 'scrooloose/syntastic'           " syntax-checking
-Plugin 'nvie/vim-flake8'                " PEP8 checking 
+Plugin 'Valloric/YouCompleteMe'         " auto-complete
+Plugin 'fatih/vim-go'                   " sensible vim-settings for syntax, checking etc. 
 Plugin 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'} " Powerline
+Plugin 'vim-scripts/vim-auto-save'      " autosaven
+Plugin 'nvie/vim-flake8'                " PEP8 checking 
 
 
 " format refference: https://github.com/VundleVim/Vundle.vim
@@ -53,8 +57,6 @@ else
     set background=dark
 endif
 
-call togglebg#map("<F5>") " switch between light and dark using f5
-
 " ## Spaces and tabs
 set tabstop=4       " number of visual spaces per TAB
 set softtabstop=4   " number of spaces in tab when editing
@@ -62,12 +64,12 @@ set expandtab       " tabs are spaces
 
 " python indentation
 au BufNewFile,BufRead *.py
-    \ set tabstop=4
-    \ set softtabstop=4
-    \ set shiftwidth=4
-    \ set textwidth=79
-    \ set expandtab
-    \ set autoindent
+    \ set tabstop=4 |
+    \ set softtabstop=4 |
+    \ set shiftwidth=4 |
+    \ set textwidth=79 |
+    \ set expandtab |
+    \ set autoindent |
     \ set fileformat=unix
 
 set encoding=utf-8 " UTF-8 support
@@ -120,7 +122,7 @@ set foldmethod=indent   " fold based on indent level
 nnoremap j gj
 nnoremap k gk
 
-nnoremap <leader><space> :nohlsearch<CR>" turn off search highlight
+nnoremap <leader><space> :nohlsearch<CR>  " turn off search highlight
 
 " move to beginning/end of line
 nnoremap B ^
@@ -146,6 +148,89 @@ nnoremap <leader>s :mksession<CR>
 " ### Nerdtree
 let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
  
+" ### Neocomplete
+"Note: This option must be set in .vimrc(_vimrc).  NOT IN .gvimrc(_gvimrc)!
+" Disable AutoComplPop
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplete#sources#syntax#min_keyword_length = 3
+let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+
+" Define dictionary.
+let g:neocomplete#sources#dictionary#dictionaries = {
+    \ 'default' : '',
+    \ 'vimshell' : $HOME.'/.vimshell_hist',
+    \ 'scheme' : $HOME.'/.gosh_completions'
+        \ }
+
+" Define keyword.
+if !exists('g:neocomplete#keyword_patterns')
+    let g:neocomplete#keyword_patterns = {}
+endif
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+
+" Plugin key-mappings.
+inoremap <expr><C-g>     neocomplete#undo_completion()
+inoremap <expr><C-l>     neocomplete#complete_common_string()
+
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
+  " For no inserting <CR> key.
+  "return pumvisible() ? "\<C-y>" : "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" Close popup by <Space>.
+"inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
+
+" AutoComplPop like behavior.
+"let g:neocomplete#enable_auto_select = 1
+
+" Shell like behavior(not recommended).
+"set completeopt+=longest
+"let g:neocomplete#enable_auto_select = 1
+"let g:neocomplete#disable_auto_complete = 1
+"inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
+
+" Enable omni completion.
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
+"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+
+" For perlomni.vim setting.
+" https://github.com/c9s/perlomni.vim
+let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
+" ### syntastic
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
 
 " ### Ag
 " open ag.vim
@@ -181,7 +266,7 @@ syntax on
 augroup configgroup
     autocmd!
     autocmd VimEnter * highlight clear SignColumn
-    autocmd BufWritePre *.php,*.py,*.js,*.txt,*.hs,*.java,*.md\:call <SID>StripTrailingWhitespaces()
+ "   autocmd BufWritePre *.php,*.py,*.js,*.txt,*.hs,*.java,*.md\:call <SID>StripTrailingWhitespaces()
     autocmd FileType java setlocal noexpandtab
     autocmd FileType java setlocal list
     autocmd FileType java setlocal listchars=tab:+\ ,eol:-
@@ -221,6 +306,17 @@ function! ToggleNumber()
     else
         set relativenumber
     endif
+endfunction
+
+" strips trailing whitespace at the end of files. This is called on buffer write in the autogroup above.
+function! <SID>StripTrailingWhitespaces()
+    " save last search & cursor position
+    let _s=@/
+    let l = line(".")
+    let c = col(".")
+    %s/\s\+$//e
+    let @/=_s
+    call cursor(l, c)
 endfunction
 
 set clipboard=unnamed " access system clipbaord in vim
